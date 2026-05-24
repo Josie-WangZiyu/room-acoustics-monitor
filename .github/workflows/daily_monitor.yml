@@ -1,0 +1,53 @@
+name: Daily Acoustic Monitor Workflow
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          
+      - name: 安装 Python 依赖
+        run: pip install feedparser requests
+
+      - name: 运行 Python 爬虫与大模型分析
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python fetch_papers.py
+
+      - name: 将新生成的 Markdown 保存到仓库
+        run: |
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'action@github.com'
+          git add content/posts/*.md
+          git commit -m "Auto-update papers" || echo "没有新的相关文献，跳过提交"
+          git push
+
+      - name: 安装 Hugo 生成器
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: 'latest'
+          extended: true
+
+      - name: 编译静态网页
+        run: hugo --minify
+
+      - name: 部署到 GitHub Pages 展示
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
