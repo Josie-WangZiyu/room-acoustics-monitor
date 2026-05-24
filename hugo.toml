@@ -1,4 +1,11 @@
-baseURL = 'https://example.org/'
-locale = 'en-us'
-title = 'My New Hugo Project'
-"theme = 'PaperMod'" 
+baseURL = "https://josie-wangziyu.github.io/room-acoustics-monitor/"
+languageCode = "zh-cn"
+title = "小空间声学文献监测站"
+theme = "PaperMod"
+
+[params]
+    env = "production"
+    description = "基于大模型自动化追踪 JASA, JSV 等期刊中关于小空间声学的最新研究动态。"
+    ShowReadingTime = true
+    ShowToc = true
+    displayFullLangName = true
