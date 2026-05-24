@@ -15,8 +15,6 @@ jobs:
     steps:
       - name: 1. 检出代码
         uses: actions/checkout@v4
-        with:
-          submodules: true # 强制云端下载网页主题
 
       - name: 2. 配置 Python 环境
         uses: actions/setup-python@v5
@@ -35,11 +33,7 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          
-          # 安全地将 content 目录加入暂存区，即便没有新文件也不会报 fatal 128
           git add content/ || true
-          
-          # 物理检测当前工作区是否有文件被修改或增加
           if [ -n "$(git status --porcelain)" ]; then
             echo "检测到新文献生成，正在提交更新..."
             git commit -m "Auto-update papers"
@@ -48,16 +42,22 @@ jobs:
             echo "当前未捕获到符合小空间声学标准的新文献，跳过本次云端同步。"
           fi
 
-      - name: 6. 安装 Hugo 生成器
+      - name: 6. 强行注入网页主题皮肤 (环境自愈)
+        run: |
+          rm -rf themes/PaperMod
+          mkdir -p themes
+          git clone https://github.com/adityatelange/hugo-PaperMod.git themes/PaperMod
+
+      - name: 7. 安装 Hugo 生成器
         uses: peaceiris/actions-hugo@v3
         with:
           hugo-version: 'latest'
           extended: true
 
-      - name: 7. 编译静态网页
+      - name: 8. 编译静态网页
         run: hugo --minify
 
-      - name: 8. 部署到 GitHub Pages 展示
+      - name: 9. 部署到 GitHub Pages 展示
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
